@@ -4,24 +4,25 @@ import json
 
 app = FastAPI()
 
-# Инициализация класса для работы с БД
+# Инициализация объекта для работы с базой данных
 db = DBManager()
 
+# Обработчик POST-запроса для добавления данных о перевале
 @app.post("/submitData")
 async def submit_data(data: dict):
-    # Проверяем обязательные поля
+    # Проверка наличия обязательных полей
     required_fields = ['title', 'user', 'coords', 'add_time']
     if not all(field in data for field in required_fields):
         raise HTTPException(status_code=400, detail="Отсутствуют обязательные поля")
 
-    # Извлекаем уровни сложности
+    # Извлечение данных об уровнях сложности
     level_data = data.get('level', {})
     winter = level_data.get('winter', '')
     summer = level_data.get('summer', '')
     autumn = level_data.get('autumn', '')
     spring = level_data.get('spring', '')
 
-    # Обновляем данные для вставки
+    # Обновление данных для вставки
     data_with_levels = data.copy()
     data_with_levels.update({
         'winter': winter,
@@ -30,7 +31,7 @@ async def submit_data(data: dict):
         'spring': spring
     })
 
-    # Вызываем метод с обновлёнными данными
+    # Вызов метода добавления и обработка результата
     result = db.add_pereval(data_with_levels)
 
     if result['status'] == 500:
