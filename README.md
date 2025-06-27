@@ -79,8 +79,6 @@ curl -X POST "http://localhost:8000/submitData" \
 -H "Content-Type: application/json" \
 -d @sample_request.json
 Файл sample_request.json:
-
-json
 {
   "beauty_title": "пер.",
   "title": "Пхия",
@@ -96,7 +94,8 @@ json
     "height": "1200"
   }
 }
-👨‍💻 Разработчику
+
+Разработчику
 Требования к коммитам:
 Соответствие PEP8
 
