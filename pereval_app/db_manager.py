@@ -14,13 +14,11 @@ class DBManager:
         self.cursor = self.conn.cursor()
 
     def add_pereval(self, data):
-        # Извлекаем данные из JSON
         user_data = data.get('user', {})
         coords_data = data.get('coords', {})
         images_data = data.get('images', [])
 
         try:
-            # Добавляем пользователя
             self.cursor.execute(
                 """
                 INSERT INTO users (email, fam, name, otc, phone)
@@ -31,7 +29,6 @@ class DBManager:
                  user_data.get('otc'), user_data.get('phone'))
             )
 
-            # Добавляем координаты
             self.cursor.execute(
                 """
                 INSERT INTO coords (latitude, longitude, height)
@@ -42,20 +39,19 @@ class DBManager:
             )
             coord_id = self.cursor.fetchone()[0]
 
-            # Добавляем перевал
             self.cursor.execute(
                 """
-                INSERT INTO pereval_added (beauty_title, title, other_titles, connect, add_time, status, coord_id, user_email)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO pereval_added (beauty_title, title, other_titles, connect, add_time, status, coord_id, user_email, winter, summer, autumn, spring)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """,
                 (data.get('beauty_title'), data.get('title'), data.get('other_titles'),
                  data.get('connect'), data.get('add_time'), 'new',
-                 coord_id, user_data.get('email'))
+                 coord_id, user_data.get('email'),
+                 data.get('winter', ''), data.get('summer', ''), data.get('autumn', ''), data.get('spring', ''))
             )
             pereval_id = self.cursor.fetchone()[0]
 
-            # Добавляем изображения
             for image in images_data:
                 self.cursor.execute(
                     """
@@ -65,18 +61,12 @@ class DBManager:
                     (pereval_id, image.get('data').encode(), image.get('title'))
                 )
 
-            # Сохраняем изменения
             self.conn.commit()
             return {'status': 200, 'message': 'Отправлено успешно', 'id': pereval_id}
 
         except Exception as e:
             self.conn.rollback()
             return {'status': 500, 'message': str(e), 'id': None}
-
-    def __del__(self):
-        # Закрываем соединение при удалении объекта
-        self.cursor.close()
-        self.conn.close()
 
 # Пример использования (для теста)
 if __name__ == "__main__":

@@ -9,15 +9,30 @@ db = DBManager()
 
 @app.post("/submitData")
 async def submit_data(data: dict):
-    # Проверяем, все ли обязательные поля есть
+    # Проверяем обязательные поля
     required_fields = ['title', 'user', 'coords', 'add_time']
     if not all(field in data for field in required_fields):
         raise HTTPException(status_code=400, detail="Отсутствуют обязательные поля")
 
-    # Вызываем метод для добавления данных
-    result = db.add_pereval(data)
+    # Извлекаем уровни сложности
+    level_data = data.get('level', {})
+    winter = level_data.get('winter', '')
+    summer = level_data.get('summer', '')
+    autumn = level_data.get('autumn', '')
+    spring = level_data.get('spring', '')
 
-    # Возвращаем результат
+    # Обновляем данные для вставки
+    data_with_levels = data.copy()
+    data_with_levels.update({
+        'winter': winter,
+        'summer': summer,
+        'autumn': autumn,
+        'spring': spring
+    })
+
+    # Вызываем метод с обновлёнными данными
+    result = db.add_pereval(data_with_levels)
+
     if result['status'] == 500:
         raise HTTPException(status_code=500, detail=result['message'])
     elif result['status'] == 200:
