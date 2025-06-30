@@ -1,55 +1,46 @@
 from fastapi import FastAPI, HTTPException
 from .db_manager import DBManager
+import json
 
 app = FastAPI()
+
+# Инициализация класса для работы с БД
 db = DBManager()
 
 @app.post("/submitData")
 async def submit_data(data: dict):
+    # Проверяем обязательные поля
     required_fields = ['title', 'user', 'coords', 'add_time']
     if not all(field in data for field in required_fields):
         raise HTTPException(status_code=400, detail="Отсутствуют обязательные поля")
-    result = db.add_pereval(data)
+
+    # Извлекаем уровни сложности
+    level_data = data.get('level', {})
+    winter = level_data.get('winter', '')
+    summer = level_data.get('summer', '')
+    autumn = level_data.get('autumn', '')
+    spring = level_data.get('spring', '')
+
+    # Обновляем данные для вставки
+    data_with_levels = data.copy()
+    data_with_levels.update({
+        'winter': winter,
+        'summer': summer,
+        'autumn': autumn,
+        'spring': spring
+    })
+
+    # Вызываем метод с обновлёнными данными
+    result = db.add_pereval(data_with_levels)
+
     if result['status'] == 500:
         raise HTTPException(status_code=500, detail=result['message'])
-    return {"status": 200, "message": "Отправлено успешно", "id": result['id']}
+    elif result['status'] == 200:
+        return {"status": 200, "message": "Отправлено успешно", "id": result['id']}
+    else:
+        raise HTTPException(status_code=400, detail="Некорректные данные")
 
-@app.get("/submitData/{id}")
-async def get_pereval(id: int):
-    result = db.get_pereval(id)
-    if result:
-        images = result[15] if result[15] else []
-        return {
-            "id": result[0], "beauty_title": result[1], "title": result[2], "other_titles": result[3],
-            "connect": result[4], "add_time": result[5], "status": result[6],
-            "coords": {"latitude": result[7], "longitude": result[8], "height": result[9]},
-            "user": {"email": result[10], "fam": result[11], "name": result[12], "otc": result[13], "phone": result[14]},
-            "images": [{"data": img.split('|')[0], "title": img.split('|')[1]} for img in images] if images else []
-        }
-    raise HTTPException(status_code=404, detail="Перевал не найден")
-
-@app.patch("/submitData/{id}")
-async def update_pereval(id: int, data: dict):
-    result = db.update_pereval(id, data)
-    if result['state'] == 0:
-        raise HTTPException(status_code=400, detail=result['message'])
-    return result
-
-@app.get("/submitData/")
-async def get_perevals_by_email(user__email: str):
-    results = db.get_perevals_by_email(user__email)
-    if results:
-        return [
-            {
-                "id": row[0], "beauty_title": row[1], "title": row[2], "other_titles": row[3],
-                "connect": row[4], "add_time": row[5], "status": row[6],
-                "coords": {"latitude": row[7], "longitude": row[8], "height": row[9]},
-                "user": {"email": row[10], "fam": row[11], "name": row[12], "otc": row[13], "phone": row[14]},
-                "images": [{"data": img.split('|')[0], "title": img.split('|')[1]} for img in (row[15] if row[15] else [])]
-            } for row in results
-        ]
-    raise HTTPException(status_code=404, detail="Перевалы для данного email не найдены")
-
+# Пример запуска (для теста)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

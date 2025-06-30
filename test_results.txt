@@ -1,0 +1,20 @@
+Тестирование методов Спринта 2 (28.06.2025)
+
+1. POST /submitData
+- Входные данные: JSON с email=qwerty@mail.ru
+- Результат: Статус 200, id=1 
+
+
+2. GET /submitData/<id>
+- ID: 1
+- Результат: Вернулся JSON с status=new и всеми полями
+
+
+3. PATCH /submitData/<id>
+- ID: 1
+- Входные данные: JSON с beauty_title=пер. Обновлённый Пхия
+- Результат: state=1, message=Запись успешно обновлена
+
+
+4. GET /submitData/?user__email=qwerty@mail.ru
+- Результат: Вернулся массив с 1 записью
