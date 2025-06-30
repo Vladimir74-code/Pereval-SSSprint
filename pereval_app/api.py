@@ -19,12 +19,20 @@ async def get_pereval(id: int):
     result = db.get_pereval(id)
     if result:
         images = result[15] if result[15] else []
+        # Фильтруем только строки и обрабатываем split
+        processed_images = []
+        if images:
+            for img in images:
+                if img and isinstance(img, str):
+                    parts = img.split('|')
+                    if len(parts) == 2:
+                        processed_images.append({"data": parts[0], "title": parts[1]})
         return {
             "id": result[0], "beauty_title": result[1], "title": result[2], "other_titles": result[3],
             "connect": result[4], "add_time": result[5], "status": result[6],
             "coords": {"latitude": result[7], "longitude": result[8], "height": result[9]},
             "user": {"email": result[10], "fam": result[11], "name": result[12], "otc": result[13], "phone": result[14]},
-            "images": [{"data": img.split('|')[0], "title": img.split('|')[1]} for img in images] if images else []
+            "images": processed_images
         }
     raise HTTPException(status_code=404, detail="Перевал не найден")
 

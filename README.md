@@ -65,3 +65,6 @@ GitHub: https://github.com/Vladimir74-code/Pereval-SSSprint.git
 
 ## Документация Swagger
 Автоматическая документация доступна при запуске сервера. Открой `http://127.0.0.1:8000/docs` в браузере для тестирования API.
+
+## Тесты
+Код покрыт тестами в `tests/test_api.py`. Запусти тесты с помощью `pytest tests/ -v`. Требуется установка `pytest` и `pytest-asyncio`.
