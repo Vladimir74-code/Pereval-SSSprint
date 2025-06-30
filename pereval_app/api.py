@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from .db_manager import DBManager
 
-app = FastAPI()
+app = FastAPI(title="Pereval API", description="API для управления данными о перевалах", version="1.0.0")
 db = DBManager()
 
-@app.post("/submitData")
+@app.post("/submitData", summary="Добавить новую запись о перевале")
 async def submit_data(data: dict):
     required_fields = ['title', 'user', 'coords', 'add_time']
     if not all(field in data for field in required_fields):
@@ -14,7 +14,7 @@ async def submit_data(data: dict):
         raise HTTPException(status_code=500, detail=result['message'])
     return {"status": 200, "message": "Отправлено успешно", "id": result['id']}
 
-@app.get("/submitData/{id}")
+@app.get("/submitData/{id}", summary="Получить запись по ID")
 async def get_pereval(id: int):
     result = db.get_pereval(id)
     if result:
@@ -28,14 +28,14 @@ async def get_pereval(id: int):
         }
     raise HTTPException(status_code=404, detail="Перевал не найден")
 
-@app.patch("/submitData/{id}")
+@app.patch("/submitData/{id}", summary="Редактировать запись")
 async def update_pereval(id: int, data: dict):
     result = db.update_pereval(id, data)
     if result['state'] == 0:
         raise HTTPException(status_code=400, detail=result['message'])
     return result
 
-@app.get("/submitData/")
+@app.get("/submitData/", summary="Получить список записей по email")
 async def get_perevals_by_email(user__email: str):
     results = db.get_perevals_by_email(user__email)
     if results:
